@@ -1,0 +1,102 @@
+import HumidifierDeviceBase from "../../lib/HumidifierDeviceBase";
+
+
+class Oasis1000S extends HumidifierDeviceBase {
+    private capabilitiesAddition: string[] = [
+        "oasis1000sCapability",
+        "onoff",
+        "measure_humidity",
+        "alarm_water_lacks",
+        "fanSpeed0to9",
+        "display_toggle"
+    ]
+
+    /**
+     * onInit is called when the device is initialized.
+     */
+    async onInit() {
+        await Promise.all(this.capabilitiesAddition.map((capability) => this.checkForCapability(capability)));
+        const hadNightlightCapability = this.hasCapability("nightlight_toggle");
+        await super.onInit();
+        if (this.supportsNightlight()) {
+            await this.checkForCapability("nightlight_toggle");
+            if (!hadNightlightCapability) {
+                this.registerCapabilityListener("nightlight_toggle", async (value) => {
+                    await this.device.setNightLightBrightness(value ? 50 : 0).catch(this.error);
+                    this.log(`Night Light: ${value}`);
+                });
+            }
+        }
+        this.registerCapabilityListener("onoff", async (value) => {
+            if (!value) await this.setCapabilityValue("oasis1000sCapability", "off");
+            await this.setMode(value ? "on" : "off");
+            await this.updateDevice();
+        });
+        this.registerCapabilityListener("oasis1000sCapability", async (value) => {
+            if (value === "off") await this.setCapabilityValue("onoff", false);
+            else await this.setCapabilityValue("onoff", true);
+            await this.setMode(value);
+        });
+
+        this.registerCapabilityListener("fanSpeed0to9", async (value) => {
+            if (value === 0) await this.triggerCapabilityListener("onoff", false);
+            else {
+                await this.setCapabilityValue("onoff", true);
+                await this.setCapabilityValue("oasis1000sCapability", "manual");
+                await this.setMode("fan_speed_" + value);
+            }
+        })
+        this.log('Oasis1000S has been initialized');
+    }
+
+    private supportsNightlight(): boolean {
+        return this.device?.device?.deviceType === "LUH-M101S-WEUR";
+    }
+
+    async setMode(value: string) {
+        if (!this.device.device) {
+            this.error("Oasis1000S is not connected");
+            return;
+        }
+        await super.setMode(value);
+    }
+
+    async updateDevice(): Promise<void> {
+        await super.updateDevice();
+        if (this.device.status && this.getAvailable()) {
+            await this.setCapabilityIfPresent('onoff', this.device.status.enabled);
+            if (this.hasCapability("oasis1000sCapability")) {
+                if (this.device.status.mode === "manual")
+                    this.setCapabilityValue("oasis1000sCapability", "manual").catch(this.error);
+                if (this.device.status.mode === "sleep")
+                    this.setCapabilityValue('oasis1000sCapability', "sleep").catch(this.error);
+                if (this.device.status.mode === "auto")
+                    this.setCapabilityValue('oasis1000sCapability', "auto").catch(this.error);
+                if (!this.device.status.enabled)
+                    this.setCapabilityValue('oasis1000sCapability', "off").catch(this.error);
+            }
+        }
+        this.log("Updating device status!");
+    }
+
+    async onAdded() {
+        this.log('Oasis1000S has been added');
+    }
+
+    async onSettings(settings: { oldSettings: any, newSettings: any, changedKeys: string[] }): Promise<string | void> {
+        await super.onSettings(settings);
+        this.log('Oasis1000S settings where changed');
+    }
+
+    async onRenamed(name: string) {
+        this.log('Oasis1000S was renamed');
+    }
+
+    async onDeleted() {
+        await super.onDeleted();
+        this.log('Oasis1000S has been deleted');
+    }
+
+}
+
+module.exports = Oasis1000S;

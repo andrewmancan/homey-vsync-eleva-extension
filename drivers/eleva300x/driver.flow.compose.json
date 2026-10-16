@@ -1,0 +1,134 @@
+{
+  "actions": [
+    {
+      "id": "set_eleva_mode",
+      "title": {
+        "en": "Set mode"
+      },
+      "titleFormatted": {
+        "en": "Set mode to [[mode]]"
+      },
+      "args": [
+        {
+          "type": "dropdown",
+          "name": "mode",
+          "title": {
+            "en": "Mode"
+          },
+          "values": [
+            {
+              "id": "off",
+              "title": {
+                "en": "Off"
+              }
+            },
+            {
+              "id": "auto",
+              "title": {
+                "en": "Auto"
+              }
+            },
+            {
+              "id": "sleep",
+              "title": {
+                "en": "Sleep"
+              }
+            },
+            {
+              "id": "manual",
+              "title": {
+                "en": "Manual"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set_eleva_child_lock",
+      "title": {
+        "en": "Set child lock"
+      },
+      "titleFormatted": {
+        "en": "Set child lock to [[enabled]]"
+      },
+      "args": [
+        {
+          "type": "checkbox",
+          "name": "enabled",
+          "title": {
+            "en": "Enabled"
+          }
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "id": "eleva_pm1_changed",
+      "title": {
+        "en": "PM1 changed"
+      },
+      "tokens": [
+        {
+          "name": "value",
+          "type": "number",
+          "title": {
+            "en": "Value"
+          }
+        },
+        {
+          "name": "previous",
+          "type": "number",
+          "title": {
+            "en": "Previous value"
+          }
+        }
+      ]
+    },
+    {
+      "id": "eleva_pm10_changed",
+      "title": {
+        "en": "PM10 changed"
+      },
+      "tokens": [
+        {
+          "name": "value",
+          "type": "number",
+          "title": {
+            "en": "Value"
+          }
+        },
+        {
+          "name": "previous",
+          "type": "number",
+          "title": {
+            "en": "Previous value"
+          }
+        }
+      ]
+    },
+    {
+      "id": "eleva_carbon_life_changed",
+      "title": {
+        "en": "Carbon filter life changed"
+      },
+      "tokens": [
+        {
+          "name": "value",
+          "type": "number",
+          "title": {
+            "en": "Value"
+          }
+        },
+        {
+          "name": "previous",
+          "type": "number",
+          "title": {
+            "en": "Previous value"
+          }
+        }
+      ]
+    }
+  ]
+}

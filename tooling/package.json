@@ -1,0 +1,7 @@
+{
+  "name": "homepi-tooling",
+  "private": true,
+  "dependencies": {
+    "homey": "4.6.0"
+  }
+}

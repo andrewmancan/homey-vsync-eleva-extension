@@ -1,0 +1,89 @@
+import PurifierDeviceBase from "../../lib/PurifierDeviceBase";
+
+class Core600s extends PurifierDeviceBase {
+    private capabilitiesAddition: string[] = [
+        "core600sCapability",
+        "fanSpeed0to4",
+        "onoff",
+        "measure_pm25",
+        "alarm_pm25",
+        "measure_filter_life",
+        "alarm_filter_life",
+        "display_toggle"
+    ]
+
+    async onInit() {
+        await Promise.all(this.capabilitiesAddition.map((capability) => this.checkForCapability(capability)));
+        await super.onInit();
+
+        this.registerCapabilityListener("onoff", async (value) => {
+            if (!value) await this.setCapabilityValue("core600sCapability", "off");
+            await this.setMode(value ? "on" : "off");
+            await this.updateDevice();
+        });
+        this.registerCapabilityListener("core600sCapability", async (value) => {
+            if (value === "off") await this.setCapabilityValue("onoff", false);
+            else await this.setCapabilityValue("onoff", true);
+            await this.setMode(value);
+        });
+
+        this.registerCapabilityListener("fanSpeed0to4", async (value) => {
+            if (value === 0) await this.triggerCapabilityListener("onoff", false);
+            else {
+                await this.setCapabilityValue("onoff", true);
+                await this.setCapabilityValue("core600sCapability", "manual");
+                await this.setMode("fan_speed_" + value);
+            }
+        })
+
+        this.log('Core600s has been initialized');
+    }
+
+    async setMode(value: string) {
+        if (!this.device.status) {
+            this.error("Core600s is not connected");
+            return;
+        }
+        await super.setMode(value);
+    }
+
+    async onAdded() {
+        this.log('Core600s has been added');
+    }
+
+
+    async onSettings({oldSettings: {}, newSettings: {}, changedKeys: []}): Promise<string | void> {
+        this.log('Core600s settings where changed');
+    }
+
+    async onRenamed(name: string) {
+        this.log('Core600s was renamed');
+    }
+
+    async onDeleted() {
+        await super.onDeleted();
+        this.log('Core600s has been deleted');
+    }
+
+    async updateDevice(): Promise<void> {
+        await super.updateDevice();
+        if (this.device.status && this.getAvailable()) {
+            await this.setCapabilityIfPresent('onoff', this.device.status.enabled);
+            if (this.hasCapability("core600sCapability")) {
+                if (this.device.status.mode === "manual")
+                    this.setCapabilityValue('core600sCapability', "manual").catch(this.error);
+                if (this.device.status.mode === "sleep")
+                    this.setCapabilityValue('core600sCapability', "sleep").catch(this.error);
+                if (this.device.status.mode === "auto")
+                    this.setCapabilityValue('core600sCapability', "auto").catch(this.error)
+                if (!this.device.status.enabled)
+                    this.setCapabilityValue('core600sCapability', "off").catch(this.error);
+            }
+
+        }
+        this.log("Updating device status!");
+    }
+
+}
+
+module.exports = Core600s;

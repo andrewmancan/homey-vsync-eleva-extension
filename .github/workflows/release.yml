@@ -1,0 +1,73 @@
+name: Test and release Eleva
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: eleva-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            tooling/package-lock.json
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+        working-directory: tooling
+      - run: npm test
+      - run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+      - run: tooling/node_modules/.bin/homey app build
+      - run: python3 scripts/package.py
+      - run: python3 scripts/validate-package.py
+      - run: python3 scripts/release-manifest.py
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: eleva-${{ github.sha }}
+          path: dist/*
+          if-no-files-found: error
+
+  release:
+    needs: test
+    if: >-
+      github.repository == 'andrewmancan/homey-vsync-eleva-extension' &&
+      github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: eleva-${{ github.sha }}
+          path: dist
+      - name: Publish immutable compiled app package
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          COMMIT: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="build-$COMMIT"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "This commit already has a release; leaving its assets unchanged."
+          else
+            gh release create "$tag" dist/eleva.tar.gz dist/release-manifest.json \
+              --target "$COMMIT" --title "Eleva ${COMMIT:0:12}" --latest \
+              --notes 'Tested community preview. See README for supported controls, cloud dependencies and hardware validation limits. Package and provenance manifest are attached.'
+          fi

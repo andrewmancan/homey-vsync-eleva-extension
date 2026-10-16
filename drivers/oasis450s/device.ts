@@ -1,0 +1,128 @@
+import HumidifierDeviceBase from "../../lib/HumidifierDeviceBase";
+import Oasis450SDevice from "../../tsvesync/devices/humidifier/Oasis450S";
+import DeviceModes from "../../tsvesync/enum/DeviceModes";
+
+class Oasis450S extends HumidifierDeviceBase {
+    private capabilitiesAddition: string[] = [
+        "oasis450sCapability",
+        "onoff",
+        "measure_humidity",
+        "alarm_water_lacks",
+        "fanSpeed0to9",
+        "warmFanSpeed0to3",
+        "display_toggle"
+    ]
+
+    device!: Oasis450SDevice
+
+    async onInit() {
+        await Promise.all(this.capabilitiesAddition.map((capability) => this.checkForCapability(capability)));
+        await super.onInit();
+
+        this.registerCapabilityListener("onoff", async (value) => {
+            if (!value) this.setCapabilityValue("oasis450sCapability", "off").then();
+            await this.setMode(value ? "on" : "off");
+            await this.updateDevice();
+        });
+        this.registerCapabilityListener("oasis450sCapability", async (value) => {
+            if (value === "off") this.setCapabilityValue("onoff", false).then();
+            else this.setCapabilityValue("onoff", true).then();
+            await this.setMode(value);
+        });
+        this.registerCapabilityListener("fanSpeed0to9", async (value) => {
+            if (value === 0) this.triggerCapabilityListener("onoff", false).then();
+            else {
+                this.setCapabilityValue("onoff", true).then();
+                this.setCapabilityValue("oasis450sCapability", "manual").then();
+                await this.setMode("fan_speed_" + value);
+            }
+        })
+
+        this.registerCapabilityListener("warmFanSpeed0to3", async (value) => {
+            await this.setMode("warm_fan_speed_" + value);
+        })
+
+        this.log('Oasis450S has been initialized');
+    }
+
+    async onAdded() {
+        this.log('Oasis450S has been added');
+    }
+
+    async onSettings(settings: { oldSettings: any, newSettings: any, changedKeys: string[] }): Promise<string | void> {
+        await super.onSettings(settings);
+        this.log('Oasis450S settings where changed');
+    }
+
+    async onRenamed(name: string) {
+        this.log('Oasis450S was renamed');
+    }
+
+    async onDeleted() {
+        await super.onDeleted();
+        this.log('Oasis450S has been deleted');
+    }
+
+    async setMode(value: string) {
+        if (!this.device.status) {
+            this.error("Oasis450S is not connected");
+            return;
+        }
+        const status = this.device.status;
+        if (value.startsWith("fan_speed_")) {
+            this.log("Mode: " + value);
+            let level = Number(value.replace("fan_speed_", ""));
+            await this.runCommandWithOptimisticCapabilities([
+                {capability: 'onoff', value: level > 0},
+                ...this.getOptimisticFanSpeedUpdates(level),
+            ], async () => {
+                if (status.mode === "sleep") {
+                    this.assertCommandSucceeded(await this.device.setHumidityMode(DeviceModes.Humidity));
+                }
+                return this.device.setLevel(level);
+            });
+            return;
+        }
+        if (value.startsWith("warm_fan_speed_")) {
+            let level = Number(value.replace("warm_fan_speed_", ""));
+            this.device?.setWarmLevel(level).catch(this.error);
+            return;
+        }
+        if (value === "auto") {
+            this.log("Mode: " + value);
+            await this.runCommandWithOptimisticCapability('onoff', true, async () => {
+                if (!status.enabled) {
+                    this.assertCommandSucceeded(await this.device.setSwitch(true));
+                }
+                return this.device.setHumidityMode(DeviceModes.Humidity);
+            });
+            return;
+        }
+        await super.setMode(value);
+    }
+
+    async updateDevice(): Promise<void> {
+        await super.updateDevice();
+        if (this.device.status && this.getAvailable()) {
+            await this.setCapabilityIfPresent('onoff', this.device.status.enabled);
+            if (this.hasCapability("oasis450sCapability")) {
+                if (this.device.status.mode === "manual")
+                    this.setCapabilityValue('oasis450sCapability', "manual").catch(this.error);
+                if (this.device.status.mode === "sleep")
+                    this.setCapabilityValue('oasis450sCapability', "sleep").catch(this.error);
+                if (this.device.status.mode === "auto" || this.device.status.mode === "humidity")
+                    this.setCapabilityValue('oasis450sCapability', "auto").catch(this.error);
+                if (!this.device.status.enabled)
+                    this.setCapabilityValue('oasis450sCapability', "off").catch(this.error);
+            }
+            if (this.hasCapability("warmFanSpeed0to3") && this.device.status.enabled) {
+                this.setCapabilityValue('warmFanSpeed0to3', this.device.status.warm_mist_level).catch(this.error);
+            }
+            this.log("Device has been updated!");
+        }
+    }
+
+
+}
+
+module.exports = Oasis450S;

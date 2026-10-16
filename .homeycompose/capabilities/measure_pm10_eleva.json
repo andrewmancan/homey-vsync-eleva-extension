@@ -1,0 +1,14 @@
+{
+  "type": "number",
+  "title": {
+    "en": "PM10"
+  },
+  "getable": true,
+  "setable": false,
+  "insights": true,
+  "units": "µg/m³",
+  "decimals": 0,
+  "min": 0,
+  "uiComponent": "sensor",
+  "icon": "/assets/capability_icons/filter_life.svg"
+}

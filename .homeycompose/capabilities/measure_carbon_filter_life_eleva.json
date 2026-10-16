@@ -1,0 +1,15 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Carbon filter life"
+  },
+  "getable": true,
+  "setable": false,
+  "insights": true,
+  "units": "%",
+  "decimals": 0,
+  "min": 0,
+  "uiComponent": "sensor",
+  "icon": "/assets/capability_icons/filter_life.svg",
+  "max": 100
+}

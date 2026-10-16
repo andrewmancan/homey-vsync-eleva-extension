@@ -1,0 +1,131 @@
+import HumidifierDeviceBase from "../../lib/HumidifierDeviceBase";
+import LV600S from "../../tsvesync/devices/humidifier/LV600S";
+import DeviceModes from "../../tsvesync/enum/DeviceModes";
+
+class LV600SDevice extends HumidifierDeviceBase {
+    private capabilitiesAddition: string[] = [
+        "lv600sCapability",
+        "onoff",
+        "measure_humidity",
+        "alarm_water_lacks",
+        "fanSpeed0to9",
+        "warmFanSpeed0to3",
+        "display_toggle"
+    ]
+
+    //TODO: Flow for: Fan Speed, Warm Mist Speed, Display, Night light
+    //TODO: Device Settings target Humidity
+    device!: LV600S
+
+
+    async onInit() {
+        await Promise.all(this.capabilitiesAddition.map((capability) => this.checkForCapability(capability)));
+        await super.onInit();
+
+        this.registerCapabilityListener("onoff", async (value) => {
+            if (!value) this.setCapabilityValue("lv600sCapability", "off").then();
+            await this.setMode(value ? "on" : "off");
+            await this.updateDevice();
+        });
+        this.registerCapabilityListener("lv600sCapability", async (value) => {
+            if (value === "off") this.setCapabilityValue("onoff", false).then();
+            else this.setCapabilityValue("onoff", true).then();
+            await this.setMode(value);
+        });
+        this.registerCapabilityListener("fanSpeed0to9", async (value) => {
+            if (value === 0) this.triggerCapabilityListener("onoff", false).then();
+            else {
+                this.setCapabilityValue("onoff", true).then();
+                this.setCapabilityValue("lv600sCapability", "manual").then();
+                await this.setMode("fan_speed_" + value);
+            }
+        })
+
+        this.registerCapabilityListener("warmFanSpeed0to3", async (value) => {
+            await this.setMode("warm_fan_speed_" + value);
+        })
+
+        this.log('LV600S has been initialized');
+    }
+
+    async onAdded() {
+        this.log('LV600S has been added');
+    }
+
+    async onSettings(settings: { oldSettings: any, newSettings: any, changedKeys: string[] }): Promise<string | void> {
+        await super.onSettings(settings);
+        this.log('LV600S settings where changed');
+    }
+
+    async onRenamed(name: string) {
+        this.log('LV600S was renamed');
+    }
+
+    async onDeleted() {
+        await super.onDeleted();
+        this.log('LV600S has been deleted');
+    }
+
+    async setMode(value: string) {
+        if (!this.device.status) {
+            this.error("LV600S is not connected");
+            return;
+        }
+        const status = this.device.status;
+        if (value.startsWith("fan_speed_")) {
+            this.log("Mode: " + value);
+            let level = Number(value.replace("fan_speed_", ""));
+            await this.runCommandWithOptimisticCapabilities([
+                {capability: 'onoff', value: level > 0},
+                ...this.getOptimisticFanSpeedUpdates(level),
+            ], async () => {
+                if (status.mode === "sleep") {
+                    this.assertCommandSucceeded(await this.device.setHumidityMode(DeviceModes.Humidity));
+                }
+                return this.device.setLevel(level);
+            });
+            return;
+        }
+        if (value.startsWith("warm_fan_speed_")) {
+            let level = Number(value.replace("warm_fan_speed_", ""));
+            this.device?.setWarmLevel(level).catch(this.error);
+            return;
+        }
+        if (value === "auto") {
+            this.log("Mode: " + value);
+            await this.runCommandWithOptimisticCapability('onoff', true, async () => {
+                if (!status.enabled) {
+                    this.assertCommandSucceeded(await this.device.setSwitch(true));
+                }
+                return this.device.setHumidityMode(DeviceModes.Humidity);
+            });
+            return;
+        }
+        await super.setMode(value);
+    }
+
+    async updateDevice(): Promise<void> {
+        await super.updateDevice();
+        if (this.device.status && this.getAvailable()) {
+            await this.setCapabilityIfPresent('onoff', this.device.status.enabled);
+            if (this.hasCapability("lv600sCapability")) {
+                if (this.device.status.mode === "manual")
+                    this.setCapabilityValue('lv600sCapability', "manual").catch(this.error);
+                if (this.device.status.mode === "sleep")
+                    this.setCapabilityValue('lv600sCapability', "sleep").catch(this.error);
+                if (this.device.status.mode === "auto" || this.device.status.mode === "humidity")
+                    this.setCapabilityValue('lv600sCapability', "auto").catch(this.error);
+                if (!this.device.status.enabled)
+                    this.setCapabilityValue('lv600sCapability', "off").catch(this.error);
+            }
+            if (this.hasCapability("warmFanSpeed0to3") && this.device.status.enabled) {
+                this.setCapabilityValue('warmFanSpeed0to3', this.device.status.warm_mist_level).catch(this.error);
+            }
+            this.log("Device has been updated!");
+        }
+    }
+
+
+}
+
+module.exports = LV600SDevice;

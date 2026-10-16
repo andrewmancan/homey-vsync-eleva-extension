@@ -1,0 +1,7 @@
+tests/
+scripts/
+tooling/
+docs/
+.github/
+dist/
+PREVIEW-CHANGES.patch

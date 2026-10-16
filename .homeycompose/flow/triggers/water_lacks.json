@@ -1,0 +1,14 @@
+{
+  "id": "water_lacks",
+  "title": {
+    "en": "Water Lacks",
+    "de": "Wasserstand zu niedrig"
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=classic200s|classic300s|dual200s|dual200spro|lv600s|oasis450s|oasis1000s|sprouthumidifier"
+    }
+  ]
+}

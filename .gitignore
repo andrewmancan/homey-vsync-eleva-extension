@@ -1,0 +1,15 @@
+**/node_modules
+**/.homeybuild/
+**/__pycache__/
+**/*.pyc
+dist/
+.env
+.env.*
+!*.env.example
+*.pem
+*.key
+*.log
+.athom-cli/
+env.json
+deploy.env
+state/

@@ -1,0 +1,19 @@
+import BasicHumidifier from "../../lib/BasicHumidifier";
+import DeviceModes from "../../enum/DeviceModes";
+import IApiResponse from "../../models/IApiResponse";
+
+export default class Classic300S extends BasicHumidifier {
+    static deviceModels = ['Classic300S', 'LUH-A601S-WUSB', 'LUH-A601S-AUSW'];
+    static methods = ['getHumidifierStatus', 'setAutomaticStop', 'setSwitch', 'setNightLightBrightness', 'setVirtualLevel', 'setTargetHumidity', 'setHumidityMode', 'setDisplay', 'setLevel']
+    static features = ['nightlight'];
+    static levels = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    static modes = [DeviceModes.Auto, DeviceModes.Manual];
+
+
+    public async setDisplay(payload: boolean): Promise<IApiResponse<any>> {
+        return await this.post('setIndicatorLightSwitch', {
+            state: Number(payload)
+        });
+    }
+
+}

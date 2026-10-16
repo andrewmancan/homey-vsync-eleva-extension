@@ -1,0 +1,35 @@
+import DeviceModes from "../../enum/DeviceModes";
+import BasicTowerFan from "../../lib/BasicTowerFan";
+import IApiResponse from "../../models/IApiResponse";
+import {IGetTowerFanStatus} from "../../models/towerfan/IGetTowerFanStatus";
+
+export default class F422S extends BasicTowerFan {
+    static deviceModels = ['LTF-F422S-KEU', 'LTF-F422S-WUSR', 'LTF-F422S-WJP', 'LTF-F422S-WUS'];
+    static methods = ['getTowerFanStatus', 'setDisplay', 'setDisplayingType', 'setLevel', 'setMuteSwitch', 'setOscillationSwitch', 'setSleepPreference', 'setSwitch', 'setTowerFanMode'];
+    static levels = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    static modes = [DeviceModes.AdvancedSleep, DeviceModes.Auto, DeviceModes.Turbo, DeviceModes.Normal]
+
+    async setLevel(payload: number): Promise<IApiResponse<any>> {
+        if (!F422S.levels.includes(payload)) {
+            throw new Error(`Invalid level: ${payload}`);
+        }
+        return super.setLevel(payload);
+    }
+
+    async setTowerFanMode(mode: DeviceModes): Promise<IApiResponse<any>> {
+        if (!F422S.modes.includes(mode)) {
+            throw new Error(`Invalid mode: ${mode}`);
+        }
+        return super.setTowerFanMode(mode);
+    }
+
+    async getTowerFanStatus(): Promise<IApiResponse<IGetTowerFanStatus>> {
+        const result = await super.getTowerFanStatus();
+        if (result.msg !== 'request success') return result;
+
+        const status = result.result?.result;
+        if (status?.temperature) status.temperature = this.convertTemperature(status.temperature);
+        return result;
+    }
+
+}

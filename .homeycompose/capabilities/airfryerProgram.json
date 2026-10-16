@@ -1,0 +1,126 @@
+{
+  "type": "enum",
+  "title": {
+    "en": "Program",
+    "de": "Programm"
+  },
+  "values": [
+    {
+      "id": "off",
+      "title": {
+        "en": "Off",
+        "de": "Aus"
+      }
+    },
+    {
+      "id": "airfry",
+      "title": {
+        "en": "Air Fry",
+        "de": "Heissluftfrittieren"
+      }
+    },
+    {
+      "id": "broil",
+      "title": {
+        "en": "Broil",
+        "de": "Gratinieren"
+      }
+    },
+    {
+      "id": "bake",
+      "title": {
+        "en": "Bake",
+        "de": "Backen"
+      }
+    },
+    {
+      "id": "roast",
+      "title": {
+        "en": "Roast",
+        "de": "Braten"
+      }
+    },
+    {
+      "id": "grill",
+      "title": {
+        "en": "Grill",
+        "de": "Grillen"
+      }
+    },
+    {
+      "id": "reheat",
+      "title": {
+        "en": "Reheat",
+        "de": "Aufwaermen"
+      }
+    },
+    {
+      "id": "dry",
+      "title": {
+        "en": "Dry",
+        "de": "Trocknen"
+      }
+    },
+    {
+      "id": "proof",
+      "title": {
+        "en": "Proof",
+        "de": "Gehen lassen"
+      }
+    },
+    {
+      "id": "steak",
+      "title": {
+        "en": "Steak",
+        "de": "Steak"
+      }
+    },
+    {
+      "id": "seafood",
+      "title": {
+        "en": "Seafood",
+        "de": "Meeresfruechte"
+      }
+    },
+    {
+      "id": "veggies",
+      "title": {
+        "en": "Veggies",
+        "de": "Gemuese"
+      }
+    },
+    {
+      "id": "french_fries",
+      "title": {
+        "en": "French Fries",
+        "de": "Pommes"
+      }
+    },
+    {
+      "id": "frozen",
+      "title": {
+        "en": "Frozen",
+        "de": "Gefrorenes"
+      }
+    },
+    {
+      "id": "chicken",
+      "title": {
+        "en": "Chicken",
+        "de": "Huhn"
+      }
+    },
+    {
+      "id": "mixed",
+      "title": {
+        "en": "Mixed",
+        "de": "Gemischt"
+      }
+    }
+  ],
+  "getable": true,
+  "setable": true,
+  "uiComponent": "picker",
+  "uiQuickAction": false,
+  "icon": "/assets/icon.svg"
+}

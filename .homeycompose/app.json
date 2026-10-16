@@ -1,0 +1,49 @@
+{
+  "id": "com.andrewmccann.vesync.eleva",
+  "version": "0.1.1",
+  "compatibility": ">=12.0.0",
+  "sdk": 3,
+  "brandColor": "#11c8bd",
+  "platforms": [
+    "local"
+  ],
+  "name": {
+    "en": "VeSync Eleva Preview"
+  },
+  "description": {
+    "en": "Community Eleva 300X integration with particulate sensors and automatic session recovery."
+  },
+  "category": [
+    "appliances"
+  ],
+  "permissions": [],
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "author": {
+    "name": "Julian Suhl",
+    "email": "julian@suhl.de"
+  },
+  "contributors": {
+    "developers": [
+      {
+        "name": "IconPark"
+      },
+      {
+        "name": "Etn Ccis"
+      }
+    ],
+    "translators": [
+      {
+        "name": "spkesDE"
+      }
+    ]
+  },
+  "bugs": {
+    "url": "https://github.com/andrewmancan/homey-vsync-eleva-extension/issues"
+  },
+  "source": "https://github.com/andrewmancan/homey-vsync-eleva-extension",
+  "support": "https://github.com/andrewmancan/homey-vsync-eleva-extension"
+}
