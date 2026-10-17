@@ -54,12 +54,13 @@ further defined and clarified by project maintainers.
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by contacting the project team at support@athom.com. All
-complaints will be reviewed and investigated and will result in a response that
-is deemed necessary and appropriate to the circumstances. The project team is
-obligated to maintain confidentiality with regard to the reporter of an incident.
-Further details of specific enforcement policies may be posted separately.
+This community fork is maintained by
+[andrewmancan](https://github.com/andrewmancan), not Athom. Use a private contact
+method on the maintainer's profile if one is available; this repository does
+not currently publish a dedicated confidential reporting address. Do not send
+this fork's conduct reports to Athom support or disclose private information
+in a public issue. GitHub's platform reporting tools can be used for violations
+of GitHub's policies.
 
 Project maintainers who do not follow or enforce the Code of Conduct in good
 faith may face temporary or permanent repercussions as determined by other
@@ -67,5 +68,5 @@ members of the project's leadership.
 
 ## Attribution
 
-This Code of Conduct is adapted from the [Contributor Covenant][homepage], version 1.4,
+This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org/), version 1.4,
 available at https://www.contributor-covenant.org/version/1/4/code-of-conduct.html

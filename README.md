@@ -57,9 +57,17 @@ uninstall or use `--clean`. The fork does not replace the original VeSync app.
 
 Version 0.1.0 was exercised on one Eleva with firmware `1.0.21(1.0.34)`:
 particulate readings, both filters, fan level 2, Auto mode and display commands
-were confirmed through Homey on 2026-10-16. Version 0.1.1 adds session recovery;
-its automated checks pass, but prolonged operation and physical power-loss
-recovery still need observation. See [testing](docs/TESTING.md).
+were confirmed through Homey on 2026-10-16.
+
+Version 0.1.1 (build `d88e0374de701aa7f76744578ed0ead36c5749ba`) was
+installed through an operator's automated pipeline on 2026-10-16. Homey's API
+confirmed the change from 0.1.0 to 0.1.1, running and enabled. The owner confirmed
+devices/Flows survived an ordinary host reboot and physical fan control worked.
+Fresh sensor readings after that update/reboot are not yet explicitly verified.
+An apparent Off state instead of Auto was reported; whether the physical unit
+was off or only the displayed state was stale remains unresolved.
+Prolonged operation and abrupt power-loss recovery still need observation.
+The deployment does not update purifier firmware. See [testing](docs/TESTING.md).
 
 ## Development and releases
 
@@ -75,7 +83,7 @@ A passing commit on `main` publishes an immutable `build-<full-commit-SHA>`
 containing `eleva.tar.gz` and `release-manifest.json`. The latter records the
 source commit, app ID/version and archive SHA-256. The archive contains the
 compiled runtime and per-file checksums. App version and build ID are distinct:
-behavior changes should increment the app version; every accepted commit has its
+behavior changes should increment the app version; every published commit has its
 own build ID. No automatic Homey App Store publishing is configured.
 
 An installation can select and verify a release without forking this repository.
