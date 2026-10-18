@@ -7,10 +7,28 @@ from pathlib import Path
 import re
 import subprocess
 import tempfile
+import time
 
 
 def gh(*args):
     return subprocess.run(['gh', *args], check=True, capture_output=True, text=True, timeout=120).stdout
+
+
+def verify_release(*args):
+    """Allow bounded attestation propagation time; never bypass verification."""
+    for attempt in range(7):
+        try:
+            return gh('release', *args)
+        except subprocess.CalledProcessError as error:
+            if attempt == 6:
+                detail = error.stderr or "No diagnostic returned by gh"
+                for key in ("GH_TOKEN", "GITHUB_TOKEN"):
+                    if os.environ.get(key):
+                        detail = detail.replace(os.environ[key], "[redacted]")
+                print(detail, flush=True)
+                raise
+            print('Release verification not ready; retrying in 10 seconds.', flush=True)
+            time.sleep(10)
 
 
 def main():
@@ -45,8 +63,8 @@ def main():
     released = json.loads(gh('api', f'repos/{repo}/releases/tags/{tag}'))
     if released.get('immutable') is not True:
         raise ValueError('GitHub did not enforce immutability; downstream promotion is blocked')
-    gh('release', 'verify', tag, '--repo', repo)
-    gh('release', 'verify-asset', tag, str(folder / asset), '--repo', repo)
+    verify_release('verify', tag, '--repo', repo)
+    verify_release('verify-asset', tag, str(folder / asset), '--repo', repo)
     print('Immutable release verified:', tag)
 
 
