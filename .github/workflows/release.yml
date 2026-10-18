@@ -51,23 +51,15 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           name: eleva-${{ github.sha }}
           path: dist
-      - name: Publish immutable compiled app package
+      - name: Publish and verify immutable compiled app package
         env:
           GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          COMMIT: ${{ github.sha }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          tag="build-$COMMIT"
-          if gh release view "$tag" >/dev/null 2>&1; then
-            echo "This commit already has a release; leaving its assets unchanged."
-          else
-            gh release create "$tag" dist/eleva.tar.gz dist/release-manifest.json \
-              --target "$COMMIT" --title "Eleva ${COMMIT:0:12}" --latest \
-              --notes 'Tested community preview. See README for supported controls, cloud dependencies and hardware validation limits. Package and provenance manifest are attached.'
-          fi
+          RELEASE_IMMUTABILITY_ENABLED: ${{ vars.RELEASE_IMMUTABILITY_ENABLED }}
+        run: python3 scripts/publish-release.py

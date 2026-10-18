@@ -1,0 +1,31 @@
+name: Notify accepted release
+on:
+  workflow_run:
+    workflows: ["Test and release Eleva"]
+    types: [completed]
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: notify-release
+  cancel-in-progress: false
+jobs:
+  notify:
+    if: >-
+      vars.RELEASE_NOTIFY_ENABLED == 'true' && github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.event != 'pull_request' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Notify after publication; receiver independently verifies selection
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DOWNSTREAM_DISPATCH_TOKEN: ${{ secrets.DOWNSTREAM_DISPATCH_TOKEN }}
+          RELEASE_NOTIFY_ENABLED: ${{ vars.RELEASE_NOTIFY_ENABLED }}
+        run: python3 scripts/notify-release.py
