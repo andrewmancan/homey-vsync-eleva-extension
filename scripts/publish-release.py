@@ -19,8 +19,13 @@ def verify_release(*args):
     for attempt in range(7):
         try:
             return gh('release', *args)
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as error:
             if attempt == 6:
+                detail = error.stderr or "No diagnostic returned by gh"
+                for key in ("GH_TOKEN", "GITHUB_TOKEN"):
+                    if os.environ.get(key):
+                        detail = detail.replace(os.environ[key], "[redacted]")
+                print(detail, flush=True)
                 raise
             print('Release verification not ready; retrying in 10 seconds.', flush=True)
             time.sleep(10)
