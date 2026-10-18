@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Package a tested, compiled Eleva app; fail on architecture-specific binaries."""
+import gzip
 import hashlib
 import json
 import os
@@ -49,10 +50,19 @@ def create_package(build, output, commit):
     with tempfile.TemporaryDirectory() as temp:
         manifest = Path(temp) / "release.json"
         manifest.write_text(json.dumps(metadata, indent=2) + "\n")
-        with tarfile.open(output, "w:gz") as archive:
-            archive.add(manifest, arcname="release.json")
-            for p in paths:
-                archive.add(p, arcname="app/" + str(p.relative_to(build)), recursive=False)
+        def normalize(info):
+            info.uid = info.gid = 0
+            info.uname = info.gname = ""
+            info.mtime = 0
+            info.mode = 0o755 if info.mode & 0o111 else 0o644
+            info.pax_headers = {}
+            return info
+        with output.open("wb") as raw:
+            with gzip.GzipFile(filename="", mode="wb", fileobj=raw, mtime=0) as compressed:
+                with tarfile.open(fileobj=compressed, mode="w", format=tarfile.PAX_FORMAT) as archive:
+                    archive.add(manifest, arcname="release.json", filter=normalize)
+                    for p in paths:
+                        archive.add(p, arcname="app/" + str(p.relative_to(build)), recursive=False, filter=normalize)
     return metadata
 
 if __name__ == "__main__":
@@ -60,4 +70,5 @@ if __name__ == "__main__":
                             ROOT / "dist/eleva.tar.gz",
                             os.environ.get("GITHUB_SHA", ""))
     print(f"Packaged Eleva {result['version']} from {result['commit']}")
+
 
